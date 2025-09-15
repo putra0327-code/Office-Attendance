@@ -58,7 +58,7 @@
             <div class="col">
               <label for="dept">Department</label>
               <select id="dept" name="department" required>
-                <option value="HR">Human Resource</option>
+                <option value="HR">HR</option>
                 <option value="Security">Security</option>
                 <option value="Engineering">Engineering</option>
                 <option value="Housekeeping">Housekeeping</option>
@@ -186,12 +186,9 @@ document.getElementById('att-form').addEventListener('submit', async (ev)=>{
   const payload = { ip, name, id, department, attendanceType };
 
   try{
-    const r = await fetch(GAS_WEBAPP_URL, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    // Use GET to avoid CORS preflight
+    const query = new URLSearchParams(payload).toString();
+    const r = await fetch(GAS_WEBAPP_URL + '?' + query);
     const j = await r.json();
     if(r.ok && j.result === 'success'){
       setResult('<div class="notice">Attendance recorded successfully. Timestamp: ' + j.timestamp + '</div>');
@@ -213,5 +210,4 @@ setStatus('Ready. Click "Verify my location" to start.');
 
 </script>
 </body>
-
 </html>
