@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Office Attendance</title>
+  <title>Presensi Karyawan Atrium Mulia</title>
   <style>
     :root{--accent:#0ea5a4;--muted:#6b7280}
     *{box-sizing:border-box}
@@ -30,21 +30,22 @@
 <body>
   <div class="container">
     <div class="card">
-      <h1>Office Attendance</h1>
-      <p class="lead">We will verify your location before allowing attendance. Make sure your device allows location access.</p>
+	  <img src="https://uccareer.id/assets/upload/company/thumbs/thumb300px-20201106-091601-fd531.png" alt="Gambar logo Mulia berbentuk outline huruf M kapital" style="width:128px;height:80px;">
+      <h1>Presensi Karyawan Atrium Mulia</h1>
+      <p class="lead">Kami akan memverifikasi lokasi Anda sebelum mengizinkan proses presensi. Mohon memastikan perangkat Anda mengizinkan akses lokasi GPS.</p>
 
-      <div id="status" class="muted">Checking device capability...</div>
+      <div id="status" class="muted">Memeriksa kapabilitas perangkat...</div>
 
       <div id="controls" style="margin-top:12px">
         <div id="before-allowed">
-          <button id="btn-check">Verify my location</button>
+          <button id="btn-check">Verifikasi lokasi saya</button>
         </div>
       </div>
 
       <div id="form-wrap" style="display:none;margin-top:14px">
-        <div class="notice warn">Location verified: You are within the office radius. Fill the form below.</div>
+        <div class="notice warn">Lokasi terverifikasi: Anda berada di dalam area kantor. Isi formulir berikut.</div>
         <form id="att-form">
-          <label for="name">Name</label>
+          <label for="name">Nama</label>
           <input id="name" name="name" type="text" required autocomplete="name">
 
           <div style="height:10px"></div>
@@ -56,16 +57,16 @@
 
           <div class="row">
             <div class="col">
-              <label for="dept">Department</label>
+              <label for="dept">Departemen</label>
               <select id="dept" name="department" required>
-                <option value="HR">HR</option>
+                <option value="HR">Human Resource</option>
                 <option value="Security">Security</option>
                 <option value="Engineering">Engineering</option>
                 <option value="Housekeeping">Housekeeping</option>
               </select>
             </div>
             <div class="col">
-              <label for="atype">Attendance Type</label>
+              <label for="atype">IN / OUT</label>
               <select id="atype" name="attendanceType" required>
                 <option value="Check In">Check In</option>
                 <option value="Check Out">Check Out</option>
@@ -76,9 +77,9 @@
           <div style="height:14px"></div>
 
           <div class="center">
-            <button type="submit">Submit Attendance</button>
+            <button type="submit">Kirim</button>
             <div style="width:10px"></div>
-            <button type="button" id="btn-cancel" class="ghost">Cancel</button>
+            <button type="button" id="btn-cancel" class="ghost">Batal</button>
           </div>
         </form>
       </div>
@@ -93,7 +94,7 @@
 
 <script>
 // CONFIG: office center & radius (meters) and GAS endpoint
-const OFFICE = { lat: -6.3537688, lon: 106.8336061 };
+const OFFICE = { lat: -6.354352730123929, lon: 106.83661413121463 };
 const RADIUS_METERS = 100; // 100 m
 let GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxbVNOYXiMdAxMLJ5eXev8_pjzVSh01vUuNnKjLhSX_TNY2kswFiuI-U2vjYUE_lZIs/exec';
 
@@ -123,14 +124,14 @@ async function getPublicIP(){
     const j = await r.json();
     return j.ip;
   }catch(e){
-    console.warn('IP fetch failed', e);
+    console.warn('Gagal mendapatkan alamat IP', e);
     return 'unknown';
   }
 }
 
 async function verifyLocation(){
-  setStatus('Requesting location from device...');
-  if(!navigator.geolocation){ setStatus('Geolocation is not available on this device.'); return false; }
+  setStatus('Meminta lokasi perangkat...');
+  if(!navigator.geolocation){ setStatus('Perangkat ini tidak mendukung geolokasi.'); return false; }
 
   return new Promise((resolve)=>{
     const opts = { enableHighAccuracy:true, maximumAge:0, timeout:15000 };
@@ -138,12 +139,12 @@ async function verifyLocation(){
       const lat = pos.coords.latitude, lon = pos.coords.longitude;
       const d = distanceMeters(OFFICE.lat, OFFICE.lon, lat, lon);
       setDebug(`Lat:${lat.toFixed(6)} Lon:${lon.toFixed(6)} — distance ${Math.round(d)} m`);
-      if(d <= RADIUS_METERS){ setStatus('Location allowed — within office radius.'); resolve(true); }
-      else{ setStatus('You are not within the office radius. Attendance disabled.'); resolve(false); }
+      if(d <= RADIUS_METERS){ setStatus('Lokasi diizinkan — berada di area kantor.'); resolve(true); }
+      else{ setStatus('Anda terdeteksi tidak berada di area kantor.'); resolve(false); }
     }, (err)=>{
       console.warn(err);
-      if(err.code === 1) setStatus('Location permission denied by user.');
-      else setStatus('Unable to get location: ' + (err.message || 'unknown'));
+      if(err.code === 1) setStatus('Izin lokasi ditolak oleh user.');
+      else setStatus('Gagal mendapatkan lokasi: ' + (err.message || 'unknown'));
       resolve(false);
     }, opts);
   });
@@ -174,8 +175,8 @@ document.getElementById('btn-cancel').addEventListener('click', ()=>{
 // Handle form submit
 document.getElementById('att-form').addEventListener('submit', async (ev)=>{
   ev.preventDefault();
-  setResult('Submitting...');
-  setStatus('Preparing attendance...');
+  setResult('Mengirim...');
+  setStatus('Menyiapkan presensi...');
   const ip = await getPublicIP();
   // gather form
   const name = document.getElementById('name').value.trim();
@@ -191,22 +192,22 @@ document.getElementById('att-form').addEventListener('submit', async (ev)=>{
     const r = await fetch(GAS_WEBAPP_URL + '?' + query);
     const j = await r.json();
     if(r.ok && j.result === 'success'){
-      setResult('<div class="notice">Attendance recorded successfully. Timestamp: ' + j.timestamp + '</div>');
+      setResult('<div class="notice">Presensi sudah dicatat. Timestamp: ' + j.timestamp + '</div>');
       setStatus('Submitted.');
       document.getElementById('att-form').reset();
     }else{
-      setResult('<div class="notice err">Submission failed. ' + (j.error || 'Unknown error') + '</div>');
+      setResult('<div class="notice err">Gagal mengirimkan data. ' + (j.error || 'Unknown error') + '</div>');
       setStatus('Submission failed.');
     }
   }catch(err){
     console.error(err);
-    setResult('<div class="notice err">Network or server error while submitting.</div>');
+    setResult('<div class="notice err">Jaringan atau server galat saat mengirim.</div>');
     setStatus('Submission error.');
   }
 });
 
 // Small helper: early message
-setStatus('Ready. Click "Verify my location" to start.');
+setStatus('Klik "Verifikasi lokasi saya" untuk memulai.');
 
 </script>
 </body>
